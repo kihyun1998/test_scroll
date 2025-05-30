@@ -133,32 +133,27 @@ class _CustomTableState extends State<CustomTable> {
                 behavior: ScrollConfiguration.of(context).copyWith(
                   scrollbars: false,
                 ),
-                child: Column(
+                child: Stack(
                   children: [
-                    // 테이블 헤더 (고정) - 가로 스크롤 적용
+                    // 메인 테이블 영역 (헤더 + 데이터 통합)
                     SingleChildScrollView(
                       controller: horizontalScrollController,
                       scrollDirection: Axis.horizontal,
                       physics: const ClampingScrollPhysics(),
-                      child: TableHeader(
-                        columns: _columns,
-                        totalWidth: contentWidth,
-                        availableWidth: availableWidth,
-                        config: _config,
-                      ),
-                    ),
+                      child: SizedBox(
+                        width: contentWidth,
+                        child: Column(
+                          children: [
+                            // 테이블 헤더
+                            TableHeader(
+                              columns: _columns,
+                              totalWidth: contentWidth,
+                              availableWidth: availableWidth,
+                              config: _config,
+                            ),
 
-                    // 테이블 데이터 영역 (스크롤바 포함)
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          // 메인 데이터 영역
-                          SingleChildScrollView(
-                            controller: horizontalScrollController,
-                            scrollDirection: Axis.horizontal,
-                            physics: const ClampingScrollPhysics(),
-                            child: SizedBox(
-                              width: contentWidth,
+                            // 테이블 데이터
+                            Expanded(
                               child: TableData(
                                 rows: _rows,
                                 columns: _columns,
@@ -167,125 +162,114 @@ class _CustomTableState extends State<CustomTable> {
                                 verticalController: verticalScrollController,
                               ),
                             ),
-                          ),
+                          ],
+                        ),
+                      ),
+                    ),
 
-                          // 세로 스크롤바 (우측 오버레이) - 헤더 밑에서 시작
-                          if (_config.showVerticalScrollbar &&
-                              needsVerticalScroll)
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              bottom: 0, // 하단까지 꽉 채움
-                              child: AnimatedOpacity(
-                                opacity: _config.scrollbarHoverOnly
-                                    ? (_isHovered
-                                        ? _config.scrollbarOpacity
-                                        : 0.0)
-                                    : _config.scrollbarOpacity,
-                                duration: _config.scrollbarAnimationDuration,
-                                child: Container(
-                                  width: _config.scrollbarWidth,
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(
-                                        _config.scrollbarWidth / 2),
+                    // 세로 스크롤바 (우측 오버레이) - 헤더 밑에서 시작
+                    if (_config.showVerticalScrollbar && needsVerticalScroll)
+                      Positioned(
+                        top: _config.headerHeight, // 헤더 높이만큼 아래서 시작
+                        right: 0,
+                        bottom: (_config.showHorizontalScrollbar &&
+                                needsHorizontalScroll)
+                            ? _config.scrollbarWidth
+                            : 0,
+                        child: AnimatedOpacity(
+                          opacity: _config.scrollbarHoverOnly
+                              ? (_isHovered ? _config.scrollbarOpacity : 0.0)
+                              : _config.scrollbarOpacity,
+                          duration: _config.scrollbarAnimationDuration,
+                          child: Container(
+                            width: _config.scrollbarWidth,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(
+                                  _config.scrollbarWidth / 2),
+                            ),
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                scrollbarTheme: ScrollbarThemeData(
+                                  thumbColor: WidgetStateProperty.all(
+                                    Colors.black.withOpacity(0.5),
                                   ),
-                                  child: Theme(
-                                    data: Theme.of(context).copyWith(
-                                      scrollbarTheme: ScrollbarThemeData(
-                                        thumbColor: WidgetStateProperty.all(
-                                          Colors.black.withOpacity(0.5),
-                                        ),
-                                        trackColor: WidgetStateProperty.all(
-                                          Colors.transparent,
-                                        ),
-                                        radius: Radius.circular(
-                                            _config.scrollbarWidth / 2),
-                                        thickness: WidgetStateProperty.all(
-                                            _config.scrollbarWidth - 4),
-                                      ),
-                                    ),
-                                    child: Scrollbar(
-                                      controller: verticalScrollbarController,
-                                      thumbVisibility: true,
-                                      trackVisibility: false,
-                                      child: SingleChildScrollView(
-                                        controller: verticalScrollbarController,
-                                        scrollDirection: Axis.vertical,
-                                        child: SizedBox(
-                                          height:
-                                              tableDataHeight, // 헤더 제외한 데이터 높이만
-                                          width: _config.scrollbarWidth,
-                                        ),
-                                      ),
-                                    ),
+                                  trackColor: WidgetStateProperty.all(
+                                    Colors.transparent,
+                                  ),
+                                  radius: Radius.circular(
+                                      _config.scrollbarWidth / 2),
+                                  thickness: WidgetStateProperty.all(
+                                      _config.scrollbarWidth - 4),
+                                ),
+                              ),
+                              child: Scrollbar(
+                                controller: verticalScrollbarController,
+                                thumbVisibility: true,
+                                trackVisibility: false,
+                                child: SingleChildScrollView(
+                                  controller: verticalScrollbarController,
+                                  scrollDirection: Axis.vertical,
+                                  child: SizedBox(
+                                    height: tableDataHeight, // 헤더 제외한 데이터 높이만
+                                    width: _config.scrollbarWidth,
                                   ),
                                 ),
                               ),
                             ),
-                        ],
+                          ),
+                        ),
                       ),
-                    ),
 
                     // 가로 스크롤바 (하단 오버레이) - 전체 너비 사용
                     if (_config.showHorizontalScrollbar &&
                         needsHorizontalScroll)
-                      SizedBox(
-                        height: _config.scrollbarWidth,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              right: 0, // 전체 너비 사용 (세로 스크롤바 위까지)
-                              top: 0,
-                              bottom: 0,
-                              child: AnimatedOpacity(
-                                opacity: _config.scrollbarHoverOnly
-                                    ? (_isHovered
-                                        ? _config.scrollbarOpacity
-                                        : 0.0)
-                                    : _config.scrollbarOpacity,
-                                duration: _config.scrollbarAnimationDuration,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(
-                                        _config.scrollbarWidth / 2),
+                      Positioned(
+                        left: 0,
+                        right: 0, // 전체 너비 사용 (세로 스크롤바까지 덮음)
+                        bottom: 0,
+                        child: AnimatedOpacity(
+                          opacity: _config.scrollbarHoverOnly
+                              ? (_isHovered ? _config.scrollbarOpacity : 0.0)
+                              : _config.scrollbarOpacity,
+                          duration: _config.scrollbarAnimationDuration,
+                          child: Container(
+                            height: _config.scrollbarWidth,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(
+                                  _config.scrollbarWidth / 2),
+                            ),
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                scrollbarTheme: ScrollbarThemeData(
+                                  thumbColor: WidgetStateProperty.all(
+                                    Colors.black.withOpacity(0.5),
                                   ),
-                                  child: Theme(
-                                    data: Theme.of(context).copyWith(
-                                      scrollbarTheme: ScrollbarThemeData(
-                                        thumbColor: WidgetStateProperty.all(
-                                          Colors.black.withOpacity(0.5),
-                                        ),
-                                        trackColor: WidgetStateProperty.all(
-                                          Colors.transparent,
-                                        ),
-                                        radius: Radius.circular(
-                                            _config.scrollbarWidth / 2),
-                                        thickness: WidgetStateProperty.all(
-                                            _config.scrollbarWidth - 4),
-                                      ),
-                                    ),
-                                    child: Scrollbar(
-                                      controller: horizontalScrollbarController,
-                                      thumbVisibility: true,
-                                      trackVisibility: false,
-                                      child: SingleChildScrollView(
-                                        controller:
-                                            horizontalScrollbarController,
-                                        scrollDirection: Axis.horizontal,
-                                        child: SizedBox(
-                                          width: contentWidth,
-                                          height: _config.scrollbarWidth,
-                                        ),
-                                      ),
-                                    ),
+                                  trackColor: WidgetStateProperty.all(
+                                    Colors.transparent,
+                                  ),
+                                  radius: Radius.circular(
+                                      _config.scrollbarWidth / 2),
+                                  thickness: WidgetStateProperty.all(
+                                      _config.scrollbarWidth - 4),
+                                ),
+                              ),
+                              child: Scrollbar(
+                                controller: horizontalScrollbarController,
+                                thumbVisibility: true,
+                                trackVisibility: false,
+                                child: SingleChildScrollView(
+                                  controller: horizontalScrollbarController,
+                                  scrollDirection: Axis.horizontal,
+                                  child: SizedBox(
+                                    width: contentWidth,
+                                    height: _config.scrollbarWidth,
                                   ),
                                 ),
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                   ],
