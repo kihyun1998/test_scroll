@@ -46,12 +46,22 @@ class CustomTableConfig {
   final bool showVerticalScrollbar;
   final bool enableHeaderSorting;
 
+  // 스크롤바 관련 새 옵션들
+  final bool scrollbarHoverOnly;
+  final double scrollbarOpacity;
+  final Duration scrollbarAnimationDuration;
+  final double scrollbarWidth;
+
   const CustomTableConfig({
     this.headerHeight = 48.0,
     this.rowHeight = 40.0,
     this.showHorizontalScrollbar = true,
     this.showVerticalScrollbar = true,
     this.enableHeaderSorting = false,
+    this.scrollbarHoverOnly = true,
+    this.scrollbarOpacity = 0.8,
+    this.scrollbarAnimationDuration = const Duration(milliseconds: 200),
+    this.scrollbarWidth = 16.0,
   });
 
   CustomTableConfig copyWith({
@@ -60,6 +70,10 @@ class CustomTableConfig {
     bool? showHorizontalScrollbar,
     bool? showVerticalScrollbar,
     bool? enableHeaderSorting,
+    bool? scrollbarHoverOnly,
+    double? scrollbarOpacity,
+    Duration? scrollbarAnimationDuration,
+    double? scrollbarWidth,
   }) {
     return CustomTableConfig(
       headerHeight: headerHeight ?? this.headerHeight,
@@ -69,6 +83,11 @@ class CustomTableConfig {
       showVerticalScrollbar:
           showVerticalScrollbar ?? this.showVerticalScrollbar,
       enableHeaderSorting: enableHeaderSorting ?? this.enableHeaderSorting,
+      scrollbarHoverOnly: scrollbarHoverOnly ?? this.scrollbarHoverOnly,
+      scrollbarOpacity: scrollbarOpacity ?? this.scrollbarOpacity,
+      scrollbarAnimationDuration:
+          scrollbarAnimationDuration ?? this.scrollbarAnimationDuration,
+      scrollbarWidth: scrollbarWidth ?? this.scrollbarWidth,
     );
   }
 }
